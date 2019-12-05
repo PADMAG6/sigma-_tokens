@@ -1,0 +1,43 @@
+title: WMI lateral movement using MSI package
+description: Lateral movement consists of techniques that enable an adversary to access and control remote systems on a network and could, but does not necessarily, include execution of tools on remote systems.Windows Management Instrumentation (WMI) is able to install MSI packages in remote computers. An attacker can use it to performa lateral movement and execute malicious code.
+author: blu
+tags:
+   - Delivery & Attack
+   - Lateral Movement
+attack_tactic: Execution
+attack_technique: Windows Management Instrumentation
+logsource:
+    product: Windows
+    service:
+#------------------------------------------------------------
+#('original condition', ':', "((event_subcategory == 'Microsoft-Windows-Sysmon' AND Event_ID == '1' AND (source_process contains* '\\\\WMIC.exe' OR pefile_description == 'WMI Commandline Utility') AND source_process_commandline contains* '/node:' AND source_process_commandline contains* '/user:' AND source_process_commandline contains* 'product call install' AND source_process_commandline contains* 'PackageLocation=') OR (event_subcategory == 'Microsoft-Windows-PowerShell' AND Event_ID == '4104' AND event_description contains* 'win32_product' AND event_description contains* 'install' AND event_description contains* '-ComputerName' AND event_description contains* '-Credential')) AND source_canonical >> [source]")
+#------------------------------------------------------------
+detection:
+    selection1:
+        EventID: 1
+    selection2:
+        Image: '*WMIC.exe'
+    selection3:
+        Description: 'WMI Commandline Utility'
+    selection4:
+        CommandLine: '*/node:*'
+    selection5:
+        CommandLine: '*/user:*'
+    selection6:
+        CommandLine: '*product call install*'
+    selection7:
+        CommandLine: '*PackageLocation=*'
+    selection8:
+        Event_ID: '4104'
+    selection9:
+        ScriptBlockText: '*win32_product*'
+    selection10:
+        ScriptBlockText: '*install*'
+    selection11:
+        ScriptBlockText: '*-ComputerName*'
+    selection12:
+        ScriptBlockText: '*-Credential*'
+    condition: (selection1 AND  (selection2 OR selection3) AND selection4 AND selection5 AND selection6 AND selection7) OR (selection8 AND selection9 AND selection10 AND selection11 AND selection12)
+falsepositives:
+    - Unknown
+level: Medium
