@@ -1,0 +1,50 @@
+title: Non-standard Process Execution Path
+description: Defense evasion consists of techniques an adversary may use to evade detection or avoid other defenses. Masquerading occurs when the name or location of an executable, legitimate or malicious, is manipulated or abused in order to evade defenses or monitoring.A process has been launched with from a non-standard path.
+author: blu
+tags:
+    - Environmental Awareness
+    - Defense Evasion
+    - Masquerading
+attack_tactic: Defense Evasion
+attack_technique: Masquerading
+logsource:
+    product: Windows
+    service: Sysmon
+#------------------------------------------------------------
+#('original condition', ':', "event_subcategory == 'Microsoft-Windows-Sysmon' AND Event_ID == '1' AND source_process ~* /(?:(?<!(?:system32|SysWOW64)\\\\wbem)\\\\wmic|(?<!system32|SysWOW64)\\\\(?:smss|svchost|wininit|csrss|services|lsass|lsm|winlogon|userinit|icacls|mctadmin))\\.exe/ AND not source_process contains* '\\\\Windows\\\\winsxs\\\\\\'")
+#------------------------------------------------------------
+detection:
+    selection1:
+        EventID: 1
+    selection2:
+        Image:
+            - '*wmic.exe'
+    selection3:
+        Image:
+            - '*\\system32\\wbem\\*'
+            - '*\\SysWOW64\\wbem\\*'
+    selection4:
+        Image:
+            - '*smss.exe'
+            - '*svchost.exe'
+            - '*wininit.exe'
+            - '*csrss.exe'
+            - '*services.exe'
+            - '*lsass.exe'
+            - '*lsm.exe'
+            - '*winlogon.exe'
+            - '*userinit.exe'
+            - '*icacls.exe'
+            - '*mctadmin.exe'
+    selection5:
+        Image:
+            - '*system32*'
+            - '*SysWOW64*'
+    selection6:
+        Image:
+            - '*\\Windows\\winsxs\\*'
+    condition:
+        (selection1 AND (selection2 AND selection3) OR (selection4 AND selection5)) AND NOT selection6
+falsepositives:
+    - Unknown
+level: Medium
